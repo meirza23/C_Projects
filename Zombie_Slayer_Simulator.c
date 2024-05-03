@@ -1,7 +1,3 @@
-/**
-* zombie.c zombie slayer simulator:
-*/
-
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -18,38 +14,48 @@ int getKilledCount();
 int ZombiSayaci=0;
 int gameover=0;
 int KillCount=0;
+pthread_mutex_t zombieMutex = PTHREAD_MUTEX_INITIALIZER;
 
 /* Keeps track of number of zombies entered.*/
 void zombieEntered(){
+    pthread_mutex_lock(&zombieMutex);
     if(ZombiSayaci < Max_Zombie)
         ZombiSayaci++;
+    pthread_mutex_unlock(&zombieMutex);
 }
 
 /* Keeps track of number of zombies killed.*/
 void zombieKilled(){
+    pthread_mutex_lock(&zombieMutex);
     if(ZombiSayaci > 0){
         ZombiSayaci--;
         KillCount++;
     }
+    pthread_mutex_unlock(&zombieMutex);
 }
 
 /* Returns true if number of zombies in the room are 
 greater than or equal to 100.*/
 int tooManyZombiesInTheRoom(){
-    if(ZombiSayaci >= Max_Zombie)
+    pthread_mutex_lock(&zombieMutex);
+    if(ZombiSayaci >= Max_Zombie){
+        pthread_mutex_unlock(&zombieMutex);
         return 1;
-    else
-        return 0;
+    }
+    pthread_mutex_unlock(&zombieMutex);
+    return 0;
 }
 
 
 /*Returns true if more than 100 zombies have been killed.*/
 int killed100Zombies(){
     int sonuc;
+    pthread_mutex_lock(&zombieMutex);
     if(getKilledCount() >= 100)
         sonuc = 1;
     else
         sonuc = 0;
+    pthread_mutex_unlock(&zombieMutex);
     return sonuc;
 }
 
@@ -57,19 +63,27 @@ int killed100Zombies(){
 /* Returns true if there is at least one zombies in the room.*/
 int zombiesExist(){
     int sonuc;
+    pthread_mutex_lock(&zombieMutex);
     if(ZombiSayaci>0)
         sonuc=1;
+    pthread_mutex_unlock(&zombieMutex);
     return sonuc;
 }
 /*Returns the number of zombies killed.*/
 int getKilledCount(){
-    return KillCount;
+    int count;
+    pthread_mutex_lock(&zombieMutex);
+    count = KillCount;
+    pthread_mutex_unlock(&zombieMutex);
+    return count;
 }
 
 /* Returns the number of zombies in the room.*/
 int getInTheRoomCount(){
     int sonuc;
+    pthread_mutex_lock(&zombieMutex);
     sonuc = ZombiSayaci;
+    pthread_mutex_unlock(&zombieMutex);
     return sonuc;
 }
 
